@@ -16,6 +16,31 @@ jQuery(function() {
 				selectFile(files[0]);
 			}
 		});
+		
+		// キーボードショートカット
+		jQuery(window).on('keyup', function(e) {
+			//console.log(e.keyCode);
+			switch(e.keyCode) {
+				case 72:
+					// h
+					control.hide1byte();
+					break;
+				case 74:
+					// j
+					control.show16bytes();
+					break;
+				case 75:
+					// k
+					control.hide16bytes();
+					break;
+				case 76:
+					// l
+					control.show1byte();
+					break;
+				default:
+					break;
+			}
+		});
 	}
 	else {
 		alert('お使いのブラウザはサポートされていません。出直してきて下さい。');
@@ -23,13 +48,12 @@ jQuery(function() {
 });
 
 function selectFile(file) {
+	control.clearAll();
+	var $hexContainer = jQuery('#hexContainer');
+	var $asciiContainer = jQuery('#asciiContainer');
 	var size = Math.min(file.size, 128);
 	var subBlob = file.slice(0, size);
 	var reader = new FileReader();
-	var $hexContainer = jQuery('#hexContainer');
-	$hexContainer.empty();
-	var $asciiContainer = jQuery('#asciiContainer');
-	$asciiContainer.empty();
 	reader.onload = function(e) {
 		//console.log(e.target.result);
 		var uint8array = new Uint8Array(e.target.result);
@@ -39,20 +63,85 @@ function selectFile(file) {
 			// hex
 			var hex = ('ff00' + element.toString(16)).substr(-2,2);
 			span = document.createElement('span');
+			span.setAttribute('style', 'display:none;');
 			span.textContent = hex;
 			$hexContainer.append(span);
 			
 			// ascii
 			var ascii = String.fromCharCode(element);
 			span = document.createElement('span');
+			span.setAttribute('style', 'display:none;');
 			span.textContent = ascii;
 			$asciiContainer.append(span);
 			
 			//console.log(element + ' | ' + hex + ' | ' + ascii);
 		});
+		control.init();
 	};
 	reader.readAsArrayBuffer(subBlob);
 }
+
+var control = {};
+control.theNextByteToBeShown = 0;
+control.hexSpans = [];
+control.asciiSpans = [];
+control.size = 0;
+control.init = function() {
+	control.theNextByteToBeShown = 0;
+	control.hexSpans = jQuery('#hexContainer > span');
+	control.asciiSpans = jQuery('#asciiContainer > span');
+	control.size = control.hexSpans.length;
+	jQuery('#buttons > button').prop('disabled', false);
+};
+control.clearAll = function() {
+	var $hexContainer = jQuery('#hexContainer');
+	$hexContainer.empty();
+	var $asciiContainer = jQuery('#asciiContainer');
+	$asciiContainer.empty();
+	control.theNextByteToBeShown = 0;
+	control.hexSpans = [];
+	control.asciiSpans = [];
+	control.size = 0;
+	jQuery('#buttons > button').prop('disabled', true);
+};
+control.hide1byte = function() {
+	if(control.theNextByteToBeShown > 0) {
+		control.theNextByteToBeShown--;
+		jQuery(control.hexSpans[control.theNextByteToBeShown]).hide();
+		jQuery(control.asciiSpans[control.theNextByteToBeShown]).hide();
+	}
+};
+control.show1byte = function() {
+	if(control.theNextByteToBeShown < control.size) {
+		jQuery(control.hexSpans[control.theNextByteToBeShown]).show();
+		jQuery(control.asciiSpans[control.theNextByteToBeShown]).show();
+		control.theNextByteToBeShown++;
+	}
+};
+control.hide16bytes = function() {
+	if(control.theNextByteToBeShown > 0) {
+		var theNewValue = control.theNextByteToBeShown - (control.theNextByteToBeShown % 16);
+		if(control.theNextByteToBeShown % 16 == 0) {
+			theNewValue = Math.max(0, theNewValue - 16);
+		}
+		for(var i=control.theNextByteToBeShown-1; i>=theNewValue; i--) {
+			jQuery(control.hexSpans[i]).hide();
+			jQuery(control.asciiSpans[i]).hide();
+		}
+		control.theNextByteToBeShown = theNewValue;
+	}
+};
+control.show16bytes = function() {
+	if(control.theNextByteToBeShown < control.size) {
+		var theNewValue = control.theNextByteToBeShown - (control.theNextByteToBeShown % 16) + 16;
+		theNewValue = Math.min(control.size, theNewValue);
+		for(var i=control.theNextByteToBeShown; i<theNewValue; i++) {
+			jQuery(control.hexSpans[i]).show();
+			jQuery(control.asciiSpans[i]).show();
+		}
+		control.theNextByteToBeShown = theNewValue;
+	}
+};
 </script>
 <style type="text/css">
 body {
@@ -103,6 +192,16 @@ div#body {
 	
 	<h2>ファイルを選択</h2>
 	<input type="file" id="fileSelector" />
+	
+	<h2>操作</h2>
+	<div id="buttons">
+		<button onclick="control.hide1byte();" disabled>1byte消す(H)</button>
+		<button onclick="control.show16bytes();" disabled>16bytes表示(J)</button>
+		<button onclick="control.hide16bytes();" disabled>16bytes消す(K)</button>
+		<button onclick="control.show1byte();" disabled>1byte表示(L)</button>
+		<br/>
+		<button onclick="control.clearAll();" disabled>全消し</button>
+	</div>
 	
 	<h2>表示</h2>
 	<div id="container">
