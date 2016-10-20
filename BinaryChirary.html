@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta charset="utf-8">
+	<title>BinaryChirary - バイナリのチラ見せツール バイナリーチラリー（Web版）</title>
+
+<script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/javascript">
+jQuery(function() {
+	if(window.File && window.FileReader && window.FileList && window.Blob) {
+		// good
+		jQuery('#fileSelector').on('change', function(e) {
+			var files = e.target.files;
+			if(files.length > 0) {
+				selectFile(files[0]);
+			}
+		});
+	}
+	else {
+		alert('お使いのブラウザはサポートされていません。出直してきて下さい。');
+	}
+});
+
+function selectFile(file) {
+	var size = Math.min(file.size, 128);
+	var subBlob = file.slice(0, size);
+	var reader = new FileReader();
+	var $hexContainer = jQuery('#hexContainer');
+	$hexContainer.empty();
+	var $asciiContainer = jQuery('#asciiContainer');
+	$asciiContainer.empty();
+	reader.onload = function(e) {
+		//console.log(e.target.result);
+		var uint8array = new Uint8Array(e.target.result);
+		uint8array.forEach(function(element, index, arr) {
+			var span = null;
+			
+			// hex
+			var hex = ('ff00' + element.toString(16)).substr(-2,2);
+			span = document.createElement('span');
+			span.textContent = hex;
+			$hexContainer.append(span);
+			
+			// ascii
+			var ascii = String.fromCharCode(element);
+			span = document.createElement('span');
+			span.textContent = ascii;
+			$asciiContainer.append(span);
+			
+			//console.log(element + ' | ' + hex + ' | ' + ascii);
+		});
+	};
+	reader.readAsArrayBuffer(subBlob);
+}
+</script>
+<style type="text/css">
+body {
+}
+div#body {
+	width: 1280px;
+	margin: 0 auto;
+}
+#container {
+	font-family: monospace;
+	font-size: 26px;
+	line-height: 1.1em;
+	width: 1280px;
+}
+#container > div {
+	display: inline-block;
+}
+#container > div > span {
+	display: inline-block;
+	background-color: #f0f0f0;
+	padding: 4px 2px;
+	margin: 2px;
+	vertical-align: top;
+	text-align: center;
+}
+#container > div > span:nth-child(16n+1) {
+	background-color: #e0e0e0;
+}
+#hexContainer {
+	width: 754px;
+}
+#hexContainer > span {
+	width: 1.5em;
+	height: 1.1em;
+}
+#asciiContainer {
+	width: 512px;
+}
+#asciiContainer > span {
+	width: 0.9em;
+	height: 1.1em;
+}
+</style>
+</head>
+<body>
+<div id="body">
+	<h1>バイナリのチラ見せツール BinaryChirary（バイナリーチラリー）Web版</h1>
+	
+	<h2>ファイルを選択</h2>
+	<input type="file" id="fileSelector" />
+	
+	<h2>表示</h2>
+	<div id="container">
+		<div id="hexContainer">
+		</div>
+		<div id="asciiContainer">
+		</div>
+	</div>
+	<hr/>
+	<footer>
+	Copyright &copy; 2016 <a href="https://github.com/motooka" target="_blank">Tadahisa MOTOOKA</a>.
+	</footer>
+</div>
+</body>
+</html>
