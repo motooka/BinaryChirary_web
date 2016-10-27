@@ -64,6 +64,28 @@ jQuery(function() {
 					break;
 			}
 		});
+
+		// ファイルの D&D
+		document.addEventListener('dragover', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'copy';
+			jQuery('#drag-n-drop-overlay').show();
+		});
+		document.addEventListener('drop', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			var files = e.dataTransfer.files; // ドロップされたファイルの配列
+			if(files.length > 0) {
+				selectFile(files[0]);
+			}
+			jQuery('#drag-n-drop-overlay').hide();
+		});
+		document.addEventListener('dragleave', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			jQuery('#drag-n-drop-overlay').hide();
+		});
 	}
 	else {
 		alert('お使いのブラウザはサポートされていません。出直してきて下さい。');
@@ -207,6 +229,29 @@ div#body {
 	width: 0.9em;
 	height: 1.1em;
 }
+
+#drag-n-drop-overlay {
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.8);
+	color: #ffffff;
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#drag-n-drop-overlay > div {
+	display: table;
+	width: 100%;
+	height: 100%;
+	font-size: 400%;
+}
+#drag-n-drop-overlay > div > div {
+	display: table-cell;
+	font-size: 200%;
+	text-align: center;
+	vertical-align: middle;
+}
 </style>
 </head>
 <body>
@@ -239,6 +284,13 @@ div#body {
 		 | 
 		Copyright &copy; 2016 <a href="https://github.com/motooka" target="_blank">Tadahisa MOTOOKA</a>.
 	</footer>
+</div>
+<div id="drag-n-drop-overlay">
+	<div>
+		<div>
+			ファイルをドロップ
+		</div>
+	</div>
 </div>
 </body>
 </html>
