@@ -66,11 +66,20 @@ jQuery(function() {
 		});
 
 		// ファイルの D&D
+		var $overlay = jQuery('#drag-n-drop-overlay');
+		var overlayFadeoutTimer = null;
 		document.addEventListener('dragover', function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 			e.dataTransfer.dropEffect = 'copy';
-			jQuery('#drag-n-drop-overlay').show();
+			if(overlayFadeoutTimer) {
+				clearTimeout(overlayFadeoutTimer);
+			}
+			$overlay.show();
+			overlayFadeoutTimer = setTimeout(function() {
+				$overlay.fadeOut(200);
+				overlayFadeoutTimer = null;
+			}, 500);
 		});
 		document.addEventListener('drop', function(e) {
 			e.stopPropagation();
@@ -79,12 +88,11 @@ jQuery(function() {
 			if(files.length > 0) {
 				selectFile(files[0]);
 			}
-			jQuery('#drag-n-drop-overlay').hide();
-		});
-		document.addEventListener('dragleave', function(e) {
-			e.stopPropagation();
-			e.preventDefault();
-			jQuery('#drag-n-drop-overlay').hide();
+			if(overlayFadeoutTimer) {
+				clearTimeout(overlayFadeoutTimer);
+				overlayFadeoutTimer = null;
+			}
+			$overlay.hide();
 		});
 	}
 	else {
