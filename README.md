@@ -16,4 +16,5 @@
 
 ## License
 MIT License
+ライセンスの全文は `BinaryChirary.html` にHTMLコメントとして書かれています。
 
